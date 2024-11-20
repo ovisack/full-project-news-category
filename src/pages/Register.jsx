@@ -1,5 +1,5 @@
-import { useContext } from "react";
-import { Link } from "react-router-dom";
+import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../provider/AuthProvider";
 
 
@@ -7,7 +7,12 @@ import { AuthContext } from "../provider/AuthProvider";
 
 const Register = () => {
 
-const {createNewUser,setUser}=useContext(AuthContext)
+const {createNewUser,setUser,updateUserProfile}=useContext(AuthContext)
+
+const navigate=useNavigate()
+
+
+const [error,setError]=useState({});
 
 
 const handleSubmit = (e)=>{
@@ -15,16 +20,31 @@ const handleSubmit = (e)=>{
 const form=new FormData(e.target);
 const photo=form.get('photo');
 const name=form.get('name');
+if(name.length<5){
+  setError({...error, name:"mast be mor then 5 character login"});
+  return;
+}
+
 const email=form.get('email');
 const password=form.get('password');
 
 
-console.log({photo,name,email,password});
+// console.log({photo,name,email,password});
 createNewUser(email,password)
 .then((result)=>{
   const  user= result.user;
   setUser(user);
-  console.log(user);
+  updateUserProfile({displayname:name,photoURL:
+    photo})
+
+
+    .then(()=>{
+      navigate("/")
+    })
+.catch(err=>{
+  console.log(err);
+})
+  
 })
 
 .catch((error) => {
@@ -43,11 +63,17 @@ createNewUser(email,password)
            <h2 className=" flex justify-center  font-bold text-4xl">Login your account</h2>
  <form onSubmit={handleSubmit} className="card-body">
    <div className="form-control">
+   
      <label className="label">
        <span className="label-text font-bold">Your name</span>
      </label>
      <input type="text" name="name" placeholder="Enter your name" className="input input-bordered" required />
    </div>
+   {error.name&&(
+     <label className="label">
+     <span className="label-text font-bold text-red-400">{error.name}</span>
+   </label>
+   )}
    <div className="form-control">
      <label className="label">
        <span className="label-text font-bold">photo URL</span>
@@ -60,6 +86,7 @@ createNewUser(email,password)
      </label>
      <input type="email" name="email" placeholder="email" className="input input-bordered" required />
    </div>
+   
    <div className="form-control">
      <label className="label">
        <span className="label-text font-bold">Password</span>
